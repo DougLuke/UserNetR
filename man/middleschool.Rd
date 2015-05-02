@@ -16,9 +16,10 @@
   a directed network.
 }
 \section{Node characteristics. Contains the following vertex attributes}{
-  \itemize{ \item gender. Student's gender (1=female,
+  \itemize{ \item \code{gender} - Student's gender (1=female,
   2=male) }
 }
+
 \author{
   Douglas Luke
 }
