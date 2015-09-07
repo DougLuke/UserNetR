@@ -1,8 +1,8 @@
 Package: UserNetR
 Type: Package
 Title: Data sets for A User's Guide to Network Analysis in R
-Version: 1.83
-Date: 2015-06-18
+Version: 1.85
+Date: 2015-09-17
 Author: Douglas Luke
 Maintainer: <dluke@wustl.edu>
 Description: These are a collection of network data sets that are used as examples
