@@ -28,7 +28,7 @@
   Douglas Luke
 }
 \references{
-  Pe\~{n}a, J. L., Touchette, H. (2012). \emph{A network theory analysis of football
+  Pe{\~n}a, J. L., Touchette, H. (2012). \emph{A network theory analysis of football
   strategies.}
   \url{http://arxiv.org/abs/1206.6904}
 }
