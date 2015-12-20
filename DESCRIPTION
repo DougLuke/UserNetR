@@ -1,7 +1,7 @@
 Package: UserNetR
 Type: Package
 Title: Data sets for A User's Guide to Network Analysis in R
-Version: 1.88
+Version: 2.00
 Date: 2015-12-20
 Author: Douglas Luke
 Maintainer: <dluke@wustl.edu>

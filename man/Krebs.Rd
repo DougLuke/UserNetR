@@ -10,20 +10,17 @@
 \details{
   This network data set was first constructed and analyzed
   by Valdis Krebs. Using publically available data at the time,
-  he constructed this contact network to illustrate the ties
+  he constructed this contact network to illustrate the contact ties
   that the 19 hijackers had prior to the attack.
 }
-\section{Node characteristics.}{
+\section{Node characteristics:}{
   \itemize{ \item \code{name} - Full name \item
   \code{flight} - Flight number }
 }
 
 
-\author{
-  Douglas Luke
-}
 \references{
-Krebs, Valdis. Uncloaking Terrorist Networks. First Monday, [S.l.], apr. 2002. ISSN 13960466. Available at: \url{http://firstmonday.org/ojs/index.php/fm/article/view/941/863}. Date accessed: 18 Jun. 2015. doi:10.5210/fm.v7i4.941.
+Krebs, Valdis. Uncloaking Terrorist Networks. First Monday, [S.l.], apr. 2002. ISSN 13960466. Available at: \url{http://firstmonday.org/ojs/index.php/fm/article/view/941/863}.
   }
 \keyword{datasets}
 

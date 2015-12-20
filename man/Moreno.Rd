@@ -13,16 +13,16 @@
   1933. The original diagram suggests that the graph
   is directed, but the network object here is non-directed.
 }
-\section{Node characteristics. Contains the following vertex attributes}{
-  \itemize{ \item gender. Student's gender (1=female,
-  2=male) }
-}
-\author{
-  Douglas Luke
+\section{Node characteristics:}{
+  \itemize{ \item \code{gender} - Student's gender (1=female,
+  2=male)
+  }
 }
 \references{
-  Moreno, J. L. (1934). \emph{Who shall survive? A new approach to the problem of human interrelations.} Nervous and mental disease monograph series, no. 58. Washington, DC: Nervous and Mental Disease Publishing Co.
-  
+  Moreno, J. L. (1934). \emph{Who shall survive? A new approach to the problem of
+  human interrelations.} Nervous and mental disease monograph series,
+  no. 58. Washington, DC: Nervous and Mental Disease Publishing Co.
+
 }
 \keyword{datasets}
 

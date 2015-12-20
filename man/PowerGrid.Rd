@@ -12,7 +12,7 @@
   \itemize{ \item \code{vertex.name} - Name of the city.  }
 }
 
-\section{Vertex characteristics}{
+\section{Node characteristics:}{
   \itemize{ \item \code{cost} - Cost to connect the two
   cities, according to the game rules.  }
 }

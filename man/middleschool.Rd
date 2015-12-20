@@ -15,14 +15,13 @@
   their five closest friends in their class. Thus, this is
   a directed network.
 }
-\section{Node characteristics. Contains the following vertex attributes}{
+
+\section{Node characteristics:}{
   \itemize{ \item \code{gender} - Student's gender (1=female,
-  2=male) }
+  2=male)
+  }
 }
 
-\author{
-  Douglas Luke
-}
 \references{
   Valente, T. W. (2010). \emph{Social Networks and Health:
   Models, Methods, and Applications.} Oxford University
