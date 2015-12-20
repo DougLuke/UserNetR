@@ -2,7 +2,7 @@
 \name{TCnetworks}
 \alias{TCnetworks}
 \title{State tobacco control organizational networks}
-\format{A list that contains four network objects}
+\format{A list that contains four network (statnet) objects}
 \description{
   This set of networks contains organizational network
   data collected from the Indiana state tobacco control
@@ -28,7 +28,7 @@
   between each pair of organizations in the
   Indiana tobacco control program.
 }
-\section{Node characteristics.}{
+\section{Node characteristics:}{
   \itemize{ \item \code{vertex.names} - Organization name
             \item \code{agency_cat} - Type of agency:
               \itemize{ \item \emph{1} - Lead agency
@@ -45,7 +45,7 @@
             \item \code{tob_yrs} - Number of years doing tobacco control }
 }
 
-\section{Edge characteristics.}{
+\section{Edge characteristics:}{
   \itemize{ \item \code{contact} - Frequency of contact (only in TCcnt):
                 \itemize{ \item \emph{1} - Yearly
               \item \emph{2} - Quarterly
@@ -64,9 +64,6 @@
   }
 }
 
-\author{
-  Douglas Luke
-}
 
 \references{
   Luke, D.A., Wald, L. M., Carothers, B. J., Bach, L. E.,
