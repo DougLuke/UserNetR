@@ -16,7 +16,7 @@
   policy and data API, it is now no longer possible to
   download the data in the same way as was done here.
   }
-\section{Node characteristics.}{
+\section{Node characteristics:}{
   \itemize{ \item \code{name} - Label for Facebook member
             \item \code{group} - Code to indicate type of friend:
               \itemize{ \item \emph{F} - Family

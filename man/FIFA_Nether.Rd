@@ -14,13 +14,13 @@
   game. The data are all obtained from
   \url{http://www.fifa.com/}.
 }
-\section{Node characteristics.}{
+\section{Node characteristics:}{
   \itemize{ \item \code{vertex.names} - Player's jersey
   number \item \code{lname} - Player's last name \item
   \code{pos} - Player position (DF,FW,GK,MF) }
 }
 
-\section{Edge characteristics.}{
+\section{Edge characteristics:}{
   \itemize{ \item \code{passes} - Total number of passes
   from player 1 to player 2 }
 }
@@ -28,6 +28,8 @@
   Douglas Luke
 }
 \references{
+  Pe\~{n}a, J. L., Touchette, H. (2012). \emph{A network theory analysis of football
+  strategies.}
   \url{http://arxiv.org/abs/1206.6904}
 }
 \keyword{datasets}
