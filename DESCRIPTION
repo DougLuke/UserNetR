@@ -1,7 +1,7 @@
 Package: UserNetR
 Type: Package
 Title: Data sets for A User's Guide to Network Analysis in R
-Version: 2.24
+Version: 2.25
 Date: 2018-10-06
 Authors@R: person("Douglas", "Luke", email = "dluke@wustl.edu",
   role = c("aut", "cre"))

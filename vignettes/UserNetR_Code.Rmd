@@ -16,50 +16,66 @@ knitr::opts_chunk$set(
 )
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+This vignette contains the R code used to produce the network analyses, results, and figures in my
+book: \emph{A User's Guide to Network Analysis in R}. 
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+Note that this code is provided as is, and may not work exactly as shown in the book,
+depending on version changes of R, igraph, statnet and any other R packages; as well
+as particular characteristics of the computer being used to run the code.
 
-## Vignette Info
+Note also that this vignette is provided mainly as a convenience so that book
+readers do not have to type in every line of code themselves. However,
+manually typing the code is actually the preferred way to \emph{learn}
+the concepts and methods of network analysis in R. Copying and pasting
+does not facilitate the type of experimentation, testing, and even
+thinking that might be helpful!
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+Finally, within each chapter of the book, there may be subtle order
+effects that are present which may cause later code chunks to fail
+unless earlier chunks have been run.
 
-## Styles
+# Chapter 2 - 5 Number Summary
+## Setup
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r, eval=FALSE}
+library(statnet)
+library(UserNetR)
+data(Moreno)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+## Simple plot
+```{r, eval=FALSE}
+gender <- Moreno %v% "gender"
+plot(Moreno,vertex.col=gender+2,vertex.cex=1.2)
 ```
 
-Also a quote using `>`:
+# Size
+```{r, eval=FALSE}
+network.size(Moreno)
+summary(Moreno,print.adj=FALSE)
+```
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+## Density
+```{r, eval=FALSE}
+den_hand <- 2*46/(33*32)
+den_hand
+gden(Moreno)
+```
+
+## Components
+```{r, eval=FALSE}
+components(Moreno)
+lgc <- component.largest(Moreno,result="graph")
+```
+
+## Diameter
+```{r, eval=FALSE}
+gd <- geodist(lgc)
+max(gd$gdist)
+```
+
+## Transitivity
+```{r, eval=FALSE}
+gtrans(Moreno,mode="graph")
+```
+
