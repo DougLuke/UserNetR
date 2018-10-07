@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 ```
 
 This vignette contains the R code used to produce the network analyses, results, and figures in my
-book: \emph{A User's Guide to Network Analysis in R}. 
+book: *A User's Guide to Network Analysis in R*. 
 
 Note that this code is provided as is, and may not work exactly as shown in the book,
 depending on version changes of R, igraph, statnet and any other R packages; as well
@@ -25,7 +25,7 @@ as particular characteristics of the computer being used to run the code.
 
 Note also that this vignette is provided mainly as a convenience so that book
 readers do not have to type in every line of code themselves. However,
-manually typing the code is actually the preferred way to \emph{learn}
+manually typing the code is actually the preferred way to *learn*
 the concepts and methods of network analysis in R. Copying and pasting
 does not facilitate the type of experimentation, testing, and even
 thinking that might be helpful!
@@ -49,7 +49,7 @@ gender <- Moreno %v% "gender"
 plot(Moreno,vertex.col=gender+2,vertex.cex=1.2)
 ```
 
-# Size
+## Size
 ```{r, eval=FALSE}
 network.size(Moreno)
 summary(Moreno,print.adj=FALSE)
@@ -77,5 +77,1590 @@ max(gd$gdist)
 ## Transitivity
 ```{r, eval=FALSE}
 gtrans(Moreno,mode="graph")
+```
+
+# Chapter 3 - Data Management
+
+## Setup
+```{r, eval=FALSE}
+library(statnet)
+library(xtable)
+library(UserNetR)
+options(width=50)
+```
+
+## Setup2
+```{r, eval=FALSE}
+load(file="dn_examp.RData")
+```
+
+## Plotting data
+```{r, eval=FALSE}
+op <- par(mar=c(0,0,0,0))
+gplot(dn_examp,vertex.col=2,displaylabels=TRUE)
+par(op)
+
+## Sociomatrix
+```{r, eval=FALSE}
+x.sociomat <- xtable(as.matrix(dn_examp),caption="Sociomatrix of the example directed network.",label="tbl:sociomat")
+digits(x.sociomat) <- 0
+print(x.sociomat,include.rownames=TRUE,include.colnames=TRUE,
+ ```
+```
+     hline.after=c(0),latex.environments="center")
+
+## Sociomatrix sparseness
+```{r, eval=FALSE}
+df.edge1 <- data.frame(
+  Nodes = c(10,100,1000),
+  "Avg. Degree" = rep(3,3),
+  Edges = c(15,150,1500),
+  Density = c(.33,.03,.003),
+  "Empty Cells" = c(70,9700,997000),
+  check.names = FALSE
+  )
+```
+
+## Edgelist format
+```{r, eval=FALSE}
+x.edge1 <- xtable(df.edge1,caption="Demonstration of sparse sociomatrices.",
+                 label="tbl:edge1")
+align(x.edge1) <- "|rrcrcr"
+digits(x.edge1) <- c(0,0,0,0,2,0)
+print(x.edge1,latex.environments="center",hline.after=c(0,nrow(df.edge1)),
+      include.rownames=FALSE,sanitize.colnames.function=function(x) {x})
+
+df.edge2 <- data.frame(
+  From = c("A","A","B","B","C","E"),
+  To = c("B","C","C","D","B","C")
+  )
+```
+
+## Edgelist format print
+```{r, eval=FALSE}
+x.edge2 <- xtable(df.edge2,caption="Edge list format for example directed network.",
+                 label="tbl:edge2")
+align(x.edge2) <- "ccc"
+print(x.edge2,latex.environments="center",hline.after=c(0,nrow(df.edge2)),
+      include.rownames=FALSE)
+```
+
+## Network data objects
+```{r, eval=FALSE}
+df.datastore <- data.frame(
+  "Type" = c("Nodes","Ties","Node Attributes", "Tie Attributes","Metadata"),
+  "Description" = c("List of nodes in network, along with node labels","List of ties in the network",
+                    "Attributes of the nodes","Attributes of the ties","Other information about the entire network"),
+  "Required?" = c("Required","Required","Optional","Optional","Depends"),
+  check.names = FALSE)
+x.datastore <- xtable(df.datastore,caption="Types of information contained in network data objects.",
+                 label="tbl:datastore")
+print(x.datastore,include.rownames=FALSE,hline.after=c(0,nrow(df.datastore)),latex.environments="")
+```
+
+## Statnet network object
+```{r, eval=FALSE}
+netmat1 <- rbind(c(0,1,1,0,0),
+                 c(0,0,1,1,0),
+                 c(0,1,0,0,0),
+                 c(0,0,0,0,0),
+                 c(0,0,1,0,0))
+rownames(netmat1) <- c("A","B","C","D","E")
+colnames(netmat1) <- c("A","B","C","D","E")
+net1 <- network(netmat1,matrix.type="adjacency")
+class(net1)
+summary(net1)
+```
+
+## Plot network object
+```{r, eval=FALSE}
+gplot(net1,vertex.col=2,displaylabels=TRUE)
+```
+
+## Second example, edgelist
+```{r, eval=FALSE}
+netmat2 <- rbind(c(1,2),
+                 c(1,3),
+                 c(2,3),
+                 c(2,4),
+                 c(3,2),
+                 c(5,3))
+net2 <- network(netmat2,matrix.type="edgelist")
+network.vertex.names(net2) <- c("A","B","C","D","E")
+summary(net2)
+```
+
+## Coercion
+```{r, eval=FALSE}
+as.sociomatrix(net1)
+class(as.sociomatrix(net1))
+```
+
+## Coercion 2
+```{r, eval=FALSE}
+all(as.matrix(net1) == as.sociomatrix(net1))
+as.matrix(net1,matrix.type = "edgelist")
+```
+
+## Node attributes
+```{r, eval=FALSE}
+set.vertex.attribute(net1, "gender", c("F","F","M","F","M"))
+net1 %v% "alldeg" <- degree(net1)
+list.vertex.attributes(net1)
+summary(net1)
+```
+
+## Node attributes 2
+```{r, eval=FALSE}
+get.vertex.attribute(net1, "gender")
+net1 %v% "alldeg"
+```
+
+## Edge attributes
+```{r, eval=FALSE}
+list.edge.attributes(net1)
+set.edge.attribute(net1,"rndval",
+                   runif(network.size(net1),0,1))
+list.edge.attributes(net1)
+summary(net1 %e% "rndval")
+summary(get.edge.attribute(net1,"rndval"))
+```
+
+## Edge attributes 2
+```{r, eval=FALSE}
+netval1 <- rbind(c(0,2,3,0,0),
+                 c(0,0,3,1,0),
+                 c(0,1,0,0,0),
+                 c(0,0,0,0,0),
+                 c(0,0,2,0,0))
+netval1 <- network(netval1,matrix.type="adjacency",
+                   ignore.eval=FALSE,names.eval="like")
+network.vertex.names(netval1) <- c("A","B","C","D","E")
+list.edge.attributes(netval1)
+get.edge.attribute(netval1, "like")
+```
+
+## Edge attributes 3
+```{r, eval=FALSE}
+as.sociomatrix(netval1)
+as.sociomatrix(netval1,"like")
+```
+
+## Setup ipgraph
+```{r, eval=FALSE}
+detach(package:statnet)
+library(igraph)
+```
+
+## Create igraph object
+```{r, eval=FALSE}
+inet1 <- graph.adjacency(netmat1)
+class(inet1)
+summary(inet1)
+str(inet1)
+```
+
+## Create igraph object 2
+```{r, eval=FALSE}
+inet2 <- graph.edgelist(netmat2)
+summary(inet2)
+```
+
+## Accessing igraph node, tie information
+```{r, eval=FALSE}
+V(inet2)$name <- c("A","B","C","D","E")
+E(inet2)$val <- c(1:6)
+summary(inet2)
+str(inet2)
+```
+
+## Intergraph
+```{r, eval=FALSE}
+library(intergraph)
+class(net1)
+net1igraph <- asIgraph(net1)
+class(net1igraph)
+str(net1igraph)
+```
+
+## Clean up
+```{r, eval=FALSE}
+detach("package:igraph", unload=TRUE)
+library(statnet)
+```
+
+## Data import
+```{r, eval=FALSE}
+netmat3 <- rbind(c("A","B"),
+                 c("A","C"),
+                 c("B","C"),
+                 c("B","D"),
+                 c("C","B"),
+                 c("E","C"))
+net.df <- data.frame(netmat3)
+net.df
+write.csv(net.df, file = "MyData.csv",
+          row.names = FALSE)
+net.edge <- read.csv(file="MyData.csv")
+net_import <- network(net.edge,
+                      matrix.type="edgelist")
+summary(net_import)
+gden(net_import)
+```
+
+## Filter nodes
+```{r, eval=FALSE}
+n1F <- get.inducedSubgraph(net1,
+            which(net1 %v% "gender" == "F"))
+n1F[,]
+```
+
+## Plot filter nodes
+```{r, eval=FALSE}
+gplot(n1F,displaylabels=TRUE)
+```
+
+## Filter nodes 2
+```{r, eval=FALSE}
+deg <- net1 %v% "alldeg"
+n2 <- net1 %s% which(deg > 1)
+```
+
+## Plot filter nodes 2
+```{r, eval=FALSE}
+gplot(n2,displaylabels=TRUE)
+```
+
+## Isolates
+```{r, eval=FALSE}
+data(ICTS_G10)
+gden(ICTS_G10)
+length(isolates(ICTS_G10))
+```
+
+## Isolates 2
+```{r, eval=FALSE}
+n3 <- ICTS_G10
+delete.vertices(n3,isolates(n3))
+gden(n3)
+length(isolates(n3))
+```
+
+## Filter edges
+```{r, eval=FALSE}
+data(DHHS)
+d <- DHHS
+gden(d)
+```
+
+## Plot filter edges
+```{r, eval=FALSE}
+op <- par(mar = rep(0, 4))
+gplot(d,gmode="graph",edge.lwd=d %e% 'collab',
+      edge.col="grey50",vertex.col="lightblue",
+      vertex.cex=1.0,vertex.sides=20)
+par(op)
+```
+
+## Filter edges 2
+```{r, eval=FALSE}
+as.sociomatrix(d)[1:6,1:6]
+list.edge.attributes(d)
+as.sociomatrix(d,attrname="collab")[1:6,1:6]
+```
+
+## Filter edges 3
+```{r, eval=FALSE}
+table(d %e%"collab")
+```
+
+## Filter edges 4
+```{r, eval=FALSE}
+d.val <- as.sociomatrix(d,attrname="collab")
+d.val[d.val < 3] <- 0
+d.filt <- as.network(d.val, directed=FALSE, 
+                    matrix.type="a",ignore.eval=FALSE,
+                    names.eval="collab")
+```
+
+## Filter edges 5
+```{r, eval=FALSE}
+summary(d.filt,print.adj=FALSE)
+gden(d.filt)
+```
+
+## Plot filter edges 2
+```{r, eval=FALSE}
+op <- par(mar = rep(0, 4))
+gplot(d.filt,gmode="graph",displaylabels=TRUE,
+      vertex.col="lightblue",vertex.cex=1.3,
+      label.cex=0.4,label.pos=5,
+      displayisolates=FALSE)
+par(op)
+```
+
+## Plot filter edges 3
+```{r, eval=FALSE}
+op <- par(mar = rep(0, 4))
+d.val <- as.sociomatrix(d,attrname="collab")
+gplot(d.val,gmode="graph",thresh=2,
+      vertex.col="lightblue",vertex.cex=1.3,
+      label.cex=0.4,label.pos=5,
+      displayisolates=FALSE)
+par(op)
+```
+
+## Symmetrizing
+```{r, eval=FALSE}
+net1mat <- symmetrize(net1,rule="weak")
+net1mat
+net1symm <- network(net1mat,matrix.type="adjacency")
+network.vertex.names(net1symm) <- c("A","B","C","D","E")
+summary(net1symm)
+```
+
+## Clean-up
+```{r, eval=FALSE}
+detach("package:statnet", unload=TRUE)
+```
+
+
+
+
+# Chapter 4 - Basic Network Plotting
+
+## Network graphic layouts
+
+## Setup
+```{r, eval=FALSE}
+library(statnet)
+library(UserNetR)
+library(RColorBrewer)
+options(width=50)
+```
+
+## Different layout example 1
+```{r, eval=FALSE}
+data(Moreno)
+op <- par(mar = rep(0, 4),mfrow=c(1,2))
+plot(Moreno,mode="circle",vertex.cex=1.5)
+plot(Moreno,mode="fruchtermanreingold",vertex.cex=1.5)
+par(op)
+```
+
+## Energy algorithm example
+```{r, eval=FALSE}
+data(Bali)
+strt_coord <- gplot(Bali,mode='circle')
+op <- par(mar=c(0,0,4,0),mfrow=c(2,3))
+set.seed(100)
+pardum <- list(niter=0,seed.coord=strt_coord)
+gplot(Bali,gmode="graph",edge.col="grey75",vertex.cex=1.5,
+      layout.par=pardum,coord=strt_coord,main='Iteration = 0')
+pardum <- list(niter=1,seed.coord=strt_coord)
+gplot(Bali,gmode="graph",edge.col="grey75",vertex.cex=1.5,
+      layout.par=pardum,main='Iteration = 1')
+pardum <- list(niter=5,seed.coord=strt_coord)
+gplot(Bali,gmode="graph",edge.col="grey75",vertex.cex=1.5,
+      layout.par=pardum,main='Iteration = 5')
+pardum <- list(niter=10,seed.coord=strt_coord)
+gplot(Bali,gmode="graph",edge.col="grey75",vertex.cex=1.5,
+      layout.par=pardum,main='Iteration = 10')
+pardum <- list(niter=25,seed.coord=strt_coord)
+gplot(Bali,gmode="graph",edge.col="grey75",vertex.cex=1.5,
+      layout.par=pardum,main='Iteration = 25')
+pardum <- list(niter=50,seed.coord=strt_coord)
+gplot(Bali,gmode="graph",edge.col="grey75",vertex.cex=1.5,
+      layout.par=pardum,main='Iteration = 50')
+par(op)
+```
+
+## Various layout options
+```{r, eval=FALSE}
+op <- par(mar=c(0,0,4,0),mfrow=c(2,3))
+gplot(Bali,gmode="graph",edge.col="grey75",
+      vertex.cex=1.5,mode='circle',main="circle")
+gplot(Bali,gmode="graph",edge.col="grey75",
+      vertex.cex=1.5,mode='eigen',main="eigen")
+gplot(Bali,gmode="graph",edge.col="grey75",
+      vertex.cex=1.5,mode='random',main="random")
+gplot(Bali,gmode="graph",edge.col="grey75",
+      vertex.cex=1.5,mode='spring',main="spring")
+gplot(Bali,gmode="graph",edge.col="grey75",
+      vertex.cex=1.5,mode='fruchtermanreingold',
+      main='fruchtermanreingold')
+gplot(Bali,gmode="graph",edge.col="grey75",
+      vertex.cex=1.5,mode='kamadakawai',
+      main='kamadakawai')
+par(op)
+```
+
+## Can save and manipulate coordinates
+```{r, eval=FALSE}
+mycoords1 <- gplot(Bali,gmode="graph",
+      vertex.cex=1.5)
+mycoords2 <- mycoords1
+mycoords2[,2] <- mycoords1[,2]*1.5
+mycoords1
+mycoords2
+op <- par(mar=c(4,3,4,3),mfrow=c(1,2))
+gplot(Bali,gmode="graph",coord=mycoords1,
+      vertex.cex=1.5,suppress.axes = FALSE,
+      ylim=c(min(mycoords2[,2])-1,max(mycoords2[,2])+1),
+      main="Original coordinates")
+gplot(Bali,gmode="graph",coord=mycoords2,
+      vertex.cex=1.5,suppress.axes = FALSE,
+      ylim=c(min(mycoords2[,2])-1,max(mycoords2[,2])+1),
+      main="Modified coordinates")
+par(op)
+```
+
+## igraph examples
+```{r, eval=FALSE}
+detach(package:statnet)
+library(igraph)
+library(intergraph)
+iBali <- asIgraph(Bali)
+op <- par(mar=c(0,0,3,0),mfrow=c(1,3))
+plot(iBali,layout=layout_in_circle,
+                  main="Circle")
+plot(iBali,layout=layout_randomly,
+                  main="Random")
+plot(iBali,layout=layout_with_kk,
+                  main="Kamada-Kawai")
+par(op)
+```
+
+## Clean up
+```{r, eval=FALSE}
+detach("package:igraph", unload=TRUE)
+```
+
+# Chapter 5 - Graphic Design
+
+## Network graphics fundamentals
+
+## Set-up
+```{r, eval=FALSE}
+library(statnet)
+library(xtable)
+library(UserNetR)
+library(RColorBrewer)
+options(width=50)
+```
+
+## Node color
+```{r, eval=FALSE}
+data(Bali)
+gplot(Bali,vertex.col="slateblue2",gmode="graph")
+```
+
+## Other ways to specify color
+```{r, eval=FALSE}
+col2rgb('slateblue2')
+gplot(Bali,vertex.col=rgb(122,103,238,
+                 maxColorValue=255),gmode="graph")
+gplot(Bali,vertex.col="#7A67EE",gmode="graph")
+```
+
+## Can use alpha channel to set transparency
+```{r, eval=FALSE}
+ndum <- rgraph(300,tprob=0.025,mode="graph")
+op <- par(mar = c(0,0,2,0),mfrow=c(1,2))
+gplot(ndum,gmode="graph",vertex.cex=2,
+      vertex.col=rgb(0,0,139,maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.5,
+      main="Fully opaque")
+gplot(ndum,gmode="graph",vertex.cex=2,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.5,
+      main="Partly transparent")
+par(op)
+```
+
+## Using vertex attributes to set node colors
+```{r, eval=FALSE}
+rolelab <- get.vertex.attribute(Bali,"role")
+op <- par(mar=c(0,0,0,0))
+plot(Bali,usearrows=FALSE,vertex.cex=1.5,label=rolelab,
+    displaylabels=T,vertex.col="role")
+par(op)
+```
+
+## Using palettes for finer color control
+```{r, eval=FALSE}
+palette()
+library(RColorBrewer)
+display.brewer.pal(5, "Dark2")
+my_pal <- brewer.pal(5,"Dark2")
+
+rolecat <- as.factor(get.vertex.attribute(Bali,"role"))
+plot(Bali,vertex.cex=1.5,label=rolelab,
+    displaylabels=T,vertex.col=my_pal[rolecat])
+op <- par(mar=c(0,0,0,0))
+```
+
+## Node sizes
+```{r, eval=FALSE}
+op <- par(mar = c(0,0,2,0),mfrow=c(1,3))
+plot(Bali,vertex.cex=0.5,main="Too small")
+plot(Bali,vertex.cex=2,main="Just right")
+plot(Bali,vertex.cex=6,main="Too large")
+par(op)
+```
+
+## Using network info to set node size
+```{r, eval=FALSE}
+deg <- degree(Bali,gmode="graph")
+deg
+cls <- closeness(Bali,gmode="graph")
+cls
+bet <- betweenness(Bali,gmode="graph")
+bet
+
+op <- par(mar = c(0,0,2,1),mfrow=c(1,2))
+plot(Bali,usearrows=T,vertex.cex=deg,main="Raw")
+plot(Bali,usearrows=FALSE,vertex.cex=log(deg),
+     main="Adjusted")
+par(op)
+
+op <- par(mar = c(0,0,2,1),mfrow=c(1,2))
+plot(Bali,usearrows=T,vertex.cex=cls,main="Raw")
+plot(Bali,usearrows=FALSE,vertex.cex=4*cls,
+     main="Adjusted")
+par(op)
+
+op <- par(mar = c(0,0,2,1),mfrow=c(1,2))
+plot(Bali,usearrows=T,vertex.cex=bet,main="Raw")
+plot(Bali,usearrows=FALSE,vertex.cex=sqrt(bet+1),
+     main="Adjusted")
+par(op)
+```
+
+## Simple function to rescale node sizes
+```{r, eval=FALSE}
+rescale <- function(nchar,low,high) {
+  min_d <- min(nchar)
+  max_d <- max(nchar)
+  rscl <- ((high-low)*(nchar-min_d))/(max_d-min_d)+low
+  rscl
+}
+```
+
+## Example of function
+```{r, eval=FALSE}
+plot(Bali,vertex.cex=rescale(deg,1,6),
+     main="Adjusted node sizes with rescale function.")
+get.vertex.attribute(Bali,"vertex.names")
+op <- par(mar = c(0,0,0,0))
+```
+
+## Final, publication ready graphic
+```{r, eval=FALSE}
+my_pal <- brewer.pal(5,"Dark2")
+rolecat <- as.factor(get.vertex.attribute(Bali,"role"))
+set.seed(654)
+plot(Bali,vertex.cex=rescale(deg,1,5),vertex.col=my_pal[rolecat])
+legend("bottomleft",legend=c("BM","CT","OA","SB","TL"),
+       col=my_pal,pch=19,pt.cex=1.5,bty="n",
+       title="Terrorist Role")
+```
+
+## Clean up
+```{r, eval=FALSE}
+detach("package:statnet", unload=TRUE)
+```
+
+# Chapter 6 - Advanced Graphics
+
+## Setup
+```{r, eval=FALSE}
+library(statnet)
+library(UserNetR)
+library(RColorBrewer)
+library(intergraph)
+options(width=50)
+```
+
+## TKPlot
+```{r, eval=FALSE}
+library(intergraph)
+library(igraph)
+data(Bali)
+iBali <- asIgraph(Bali)
+Coord <- tkplot(iBali, vertex.size=3, 
+                vertex.label=V(iBali)$role, 
+                vertex.color="darkgreen")
+# Edit plot in Tk graphics window before 
+# running next two commands.
+MCoords <- tkplot.getcoords(Coord)
+plot(iBali, layout=MCoords, vertex.size=5, 
+             vertex.label=NA, vertex.color="lightblue")
+```
+
+## NetworkD3
+```{r, eval=FALSE}
+library(networkD3)
+src <- c("A","A","B","B","C","E")
+target <- c("B","C","C","D","B","C")
+net_edge <- data.frame(src, target)
+simpleNetwork(net_edge)
+```
+
+## NetworkD3 2
+```{r, eval=FALSE}
+net_D3 <- simpleNetwork(net_edge) 
+saveNetwork(net_D3,file = 'Net_test1.html',
+            selfcontained=TRUE)
+```
+
+## ForceNetwork
+```{r, eval=FALSE}
+iBali_edge <- get.edgelist(iBali)
+iBali_edge <- iBali_edge - 1
+iBali_edge <- data.frame(iBali_edge)
+iBali_nodes <- data.frame(NodeID=as.numeric(V(iBali)-1),
+                          Group=V(iBali)$role,
+                          Nodesize=(degree(iBali)))
+forceNetwork(Links = iBali_edge, Nodes = iBali_nodes,
+            Source = "X1", Target = "X2",
+            NodeID = "NodeID",Nodesize = "Nodesize",
+            radiusCalculation="Math.sqrt(d.nodesize)*3",
+            Group = "Group", opacity = 0.8,
+            legend=TRUE)
+```
+
+## ForceNetwork 2
+```{r, eval=FALSE}
+net_D3 <- forceNetwork(Links = iBali_edge, 
+            Nodes = iBali_nodes,
+            Source = "X1", Target = "X2",
+            NodeID = "NodeID",Nodesize = "Nodesize",
+            radiusCalculation="Math.sqrt(d.nodesize)*3",
+            Group = "Group", opacity = 0.8,
+            legend=TRUE)
+saveNetwork(net_D3,file = 'Net_test2.html',
+            selfcontained=TRUE)
+```
+
+## visNetwork
+```{r, eval=FALSE}
+library(visNetwork)
+iBali_edge <- get.edgelist(iBali)
+iBali_edge <- data.frame(from = iBali_edge[,1],
+                         to = iBali_edge[,2])
+iBali_nodes <- data.frame(id = as.numeric(V(iBali)))
+visNetwork(iBali_nodes, iBali_edge, width = "100%")
+```
+
+## visNetwork 2
+```{r, eval=FALSE}
+iBali_nodes$group <- V(iBali)$role
+iBali_nodes$value <- degree(iBali)
+net <- visNetwork(iBali_nodes, iBali_edge, 
+                  width = "100%",legend=TRUE)
+visOptions(net,highlightNearest = TRUE)
+```
+
+## visNetwork 3
+```{r, eval=FALSE}
+net <- visNetwork(iBali_nodes, iBali_edge, 
+                  width = "100%",legend=TRUE)
+net <- visOptions(net,highlightNearest = TRUE)
+net <- visInteraction(net,navigationButtons = TRUE)
+library(htmlwidgets)
+saveWidget(net, "Net_test3.html")
+```
+
+## statnetWeb
+```{r, eval=FALSE}
+library(statnetWeb)
+run_sw()
+```
+
+## arcdiagram
+library(devtools)
+install_github("gastonstat/arcdiagram")
+```
+
+## Simpsons setup
+```{r, eval=FALSE}
+library(arcdiagram)
+library(igraph)
+library(intergraph)
+data(Simpsons)
+iSimp <- asIgraph(Simpsons)
+simp_edge <- get.edgelist(iSimp)
+```
+
+## arcdiagram 2
+```{r, eval=FALSE}
+arcplot(simp_edge)
+```
+
+## Simpsons 2
+```{r, eval=FALSE}
+s_grp <- V(iSimp)$group
+s_col = c("#a6611a", "#dfc27d","#80cdc1","#018571")
+cols = s_col[s_grp]
+node_deg <- degree(iSimp)
+```
+
+## arcdiagram 3
+```{r, eval=FALSE}
+arcplot(simp_edge, lwd.arcs=2, cex.nodes=node_deg/2,
+        labels=V(iSimp)$vertex.names,
+        col.labels="darkgreen",font=1,
+        pch.nodes=21,line=1,col.nodes = cols,
+        bg.nodes = cols, show.nodes = TRUE)
+```
+
+## Cleanup
+```{r, eval=FALSE}
+detach("package:arcdiagram", unload=TRUE)
+detach("package:igraph", unload=TRUE)
+```
+
+## FIFA setup
+```{r, eval=FALSE}
+library(statnet)
+library(circlize)
+data(FIFA_Nether)
+FIFAm <- as.sociomatrix(FIFA_Nether,attrname='passes')
+names <- c("GK1","DF3","DF4","DF5","MF6",
+           "FW7","FW9","MF10","FW11","DF2","MF8")
+rownames(FIFAm) = names
+colnames(FIFAm) = names
+FIFAm
+```
+
+## Fifa setup 2
+```{r, eval=FALSE}
+FIFAm[FIFAm < 10] <- 0
+FIFAm
+```
+
+## Chord diagram
+```{r, eval=FALSE}
+chordDiagram(FIFAm)
+```
+
+## Chord diagram 2
+```{r, eval=FALSE}
+grid.col <- c("#AA3939",rep("#AA6C39",4),
+              rep("#2D882D",3),rep("#226666",3))
+chordDiagram(FIFAm,directional = TRUE,
+             grid.col = grid.col,
+             order=c("GK1","DF2","DF3","DF4","DF5",
+                     "MF6","MF8","MF10","FW7",
+                     "FW9","FW11"))
+```
+
+## Heatmap setup
+```{r, eval=FALSE}
+data(FIFA_Nether)
+FIFAm <- as.sociomatrix(FIFA_Nether,attrname='passes')
+colnames(FIFAm) <- c("GK1","DF3","DF4","DF5",
+                     "MF6","FW7","FW9","MF10",
+                     "FW11","DF2","MF8")
+rownames(FIFAm) <- c("GK1","DF3","DF4","DF5",
+                     "MF6","FW7","FW9","MF10",
+                     "FW11","DF2","MF8")
+```
+
+## Heatmap
+```{r, eval=FALSE}
+palf <- colorRampPalette(c("#669999", "#003333")) 
+heatmap(FIFAm[,11:1],Rowv = NA,Colv = NA,col = palf(60), 
+        scale="none", margins=c(11,11) )
+```
+
+## edgeMaker setup
+```{r, eval=FALSE}
+edgeMaker <- function(whichRow,len=100, curved = TRUE){
+  fromC <- layoutCoordinates[adjacencyList[whichRow,1],]
+  toC <- layoutCoordinates[adjacencyList[whichRow,2],]
+  graphCenter <- colMeans(layoutCoordinates)
+  bezierMid <- c(fromC[1], toC[2]) 
+  distance1 <- sum((graphCenter - bezierMid)^2)
+  if(distance1 < sum((graphCenter - c(toC[1], 
+                      fromC[2]))^2)){
+    bezierMid <- c(toC[1], fromC[2])
+    } 
+  bezierMid <- (fromC + toC + bezierMid) / 3 
+  if(curved == FALSE){bezierMid <- (fromC + toC) / 2}  
+ 
+  edge <- data.frame(bezier(c(fromC[1], bezierMid[1], 
+                              toC[1]),  
+                            c(fromC[2], bezierMid[2], 
+                              toC[2]),  
+                            evaluation = len))  
+  edge$Sequence <- 1:len  
+  edge$Group <- paste(adjacencyList[whichRow, 1:2], 
+                      collapse = ">")
+  return(edge)
+  }
+```
+
+## Setup
+```{r, eval=FALSE}
+library(sna)
+library(ggplot2)
+library(Hmisc)
+```
+
+## FIFA setup
+```{r, eval=FALSE}
+data(FIFA_Nether)
+fifa <- FIFA_Nether
+fifa.edge <- as.edgelist.sna(fifa,attrname='passes')
+fifa.edge <- data.frame(fifa.edge)
+names(fifa.edge)[3] <- "value"
+fifa.edge <- fifa.edge[fifa.edge$value > 9,]
+adjacencyList <- fifa.edge
+```
+
+## Create edges
+```{r, eval=FALSE}
+layoutCoordinates <- gplot(network(fifa.edge))
+allEdges <- lapply(1:nrow(fifa.edge), 
+                   edgeMaker, len = 500, curved = TRUE)
+allEdges <- do.call(rbind, allEdges) 
+```
+
+## Setup plot
+```{r, eval=FALSE}
+new_theme_empty <- theme_bw()
+new_theme_empty$line <- element_blank()
+new_theme_empty$rect <- element_blank()
+new_theme_empty$strip.text <- element_blank()
+new_theme_empty$axis.text <- element_blank()
+new_theme_empty$plot.title <- element_blank()
+new_theme_empty$axis.title <- element_blank()
+new_theme_empty$plot.margin <- structure(c(0,0,-1,-1), 
+                                unit = "lines",
+                                valid.unit = 3L, 
+                                class = "unit")
+```
+
+## edgeMaker ggplot
+```{r, eval=FALSE}
+zp1 <- ggplot(allEdges)  
+zp1 <- zp1 + geom_path(aes(x = x, y = y, group = Group,
+                       colour=Sequence, size=-Sequence))
+zp1 <- zp1 + geom_point(data = 
+                          data.frame(layoutCoordinates),
+                        aes(x = x, y = y), 
+                        size = 4, pch = 21,
+                        colour = "black", fill = "gray")  
+zp1 <- zp1 + scale_colour_gradient(low = gray(0), 
+                                   high = gray(9/10), 
+                                   guide = "none")
+zp1 <- zp1 + scale_size(range = c(1/10, 1.5),
+                        guide = "none")
+zp1 <- zp1 + new_theme_empty  
+print(zp1)
+```
+
+## Cleanup
+```{r, eval=FALSE}
+detach("package:statnet", unload=TRUE)
+```
+
+
+# Chapter 7 - Actor Prominence
+
+## Actor Prominence
+
+## Setup
+```{r, eval=FALSE}
+library(statnet)
+library(xtable)
+library(UserNetR)
+library(RColorBrewer)
+options(width=50)
+```
+
+## Initial example
+```{r, eval=FALSE}
+load(file="prom_example_net.RData")
+net_mat <- as.sociomatrix(net)
+net_mat
+gplot(net,displaylabels=TRUE,usearrows=FALSE,coord=coords,
+      jitter=FALSE)
+net <- network(net_mat)
+net %v% 'vertex.names'
+```
+
+## Three centrality measures
+```{r, eval=FALSE}
+degree(net, gmode="graph")
+closeness(net, gmode="graph")
+betweenness(net, gmode="graph")
+```
+
+## More interesting example
+```{r, eval=FALSE}
+data(DHHS)
+df.prom <- data.frame(
+  deg = degree(DHHS),
+  cls = closeness(DHHS),
+  btw = betweenness(DHHS),
+  evc = evcent(DHHS),
+  inf = infocent(DHHS),
+  flb = flowbet(DHHS)
+  )
+cor(df.prom)
+```
+
+## Centralization
+```{r, eval=FALSE}
+dum1 <- rbind(c(1,2),c(1,3),c(1,4),c(1,5))
+star_net <- network(dum1,directed=FALSE)  
+dum2 <- rbind(c(1,2),c(2,3),c(3,4),c(4,5),c(5,1))
+circle_net <- network(dum2,directed=FALSE) 
+
+my_pal <- brewer.pal(5,"Set2")
+gplot(star_net,usearrows=FALSE,displaylabels=FALSE,
+      vertex.cex=2,
+      vertex.col=my_pal[1],
+      edge.lwd=0,edge.col="grey50",xlab="Star Graph")
+gplot(circle_net,usearrows=FALSE,displaylabels=FALSE,
+      vertex.cex=2,
+      vertex.col=my_pal[3],
+      edge.lwd=0,edge.col="grey50",xlab="Circle Graph")
+closeness(circle_net)
+centralization(circle_net,closeness)
+closeness(star_net)
+centralization(star_net,closeness)
+```
+
+## Bali example
+```{r, eval=FALSE}
+data(Bali)
+str(degree(Bali))
+summary(degree(Bali))
+
+my_pal <- brewer.pal(5,"Set2")
+rolecat <- Bali %v% "role"
+gplot(Bali,usearrows=FALSE,displaylabels=TRUE,
+     vertex.col=my_pal[as.factor(rolecat)],
+      edge.lwd=0,edge.col="grey25")
+legend("topright",legend=c("BM","CT","OA","SB",
+                "TL"),col=my_pal,pch=19,pt.cex=2)
+
+
+df.prom2 <- data.frame(
+  degree = degree(Bali),
+  closeness = closeness(Bali),
+  betweenness = betweenness(Bali)
+  )
+
+row.names(df.prom2) <- Bali %v% "vertex.names"
+df.promsort <- df.prom2[order(-df.prom2$degree),]
+df.promsort
+
+centralization(Bali,degree)
+centralization(Bali,closeness)
+centralization(Bali,betweenness)
+```
+
+## Nice plot, nodes sized by relative degree
+```{r, eval=FALSE}
+deg <- degree(Bali,rescale=TRUE)
+gplot(Bali,usearrows=FALSE,displaylabels=TRUE,
+      vertex.cex=deg*12,
+      vertex.col=my_pal[as.factor(rolecat)],
+      edge.lwd=0.5,edge.col="grey75")
+legend("topright",legend=c("BM","CT","OA","SB","TL"),
+       col=my_pal,pch=19,pt.cex=2)
+```
+
+## Cutpoints
+```{r, eval=FALSE}
+cpnet <- cutpoints(net,mode="graph",
+                   return.indicator=TRUE)
+gplot(net,gmode="graph",vertex.col=cpnet+2,coord=coords,
+      jitter=FALSE,displaylabels=TRUE)
+```
+
+## Components increase if cutpoint removed
+```{r, eval=FALSE}
+net2 <- net
+components(net2)
+delete.vertices(net2,7)
+components(net2)
+gplot(net2,gmode="graph",vertex.col=2,
+      coord=coords[-7,],jitter=FALSE,displaylabels=TRUE)
+```
+
+## Bridges
+
+```{r, eval=FALSE}
+bridges <- function(dat,mode="graph",
+                    connected=c("strong", "weak")) {
+  e_cnt <- network.edgecount(dat)
+  if (mode == "graph") {
+    cmp_cnt <- components(dat)
+    b_vec <- rep(FALSE,e_cnt) 
+    for(i in 1:e_cnt){
+      dat2 <- dat
+      delete.edges(dat2,i)
+      b_vec[i] <- (components(dat2) != cmp_cnt)
+      }
+  }
+  else {
+    cmp_cnt <- components(dat,connected=connected)
+    b_vec <- rep(FALSE,e_cnt)
+    for(i in 1:e_cnt){
+      dat2 <- dat
+      delete.edges(dat2,i)
+      b_vec[i] <- (components(dat2,connected=connected) 
+        != cmp_cnt)
+    }
+  }
+return(b_vec)
+}
+```
+
+## Demonstrate bridges
+```{r, eval=FALSE}
+bridges(net)
+brnet <- bridges(net)
+gplot(net,gmode="graph",vertex.col="red",
+      edge.col=brnet+2,coord=coords,
+      jitter=FALSE,displaylabels=TRUE)
+```
+
+## Clean up
+```{r, eval=FALSE}
+detach("package:statnet", unload=TRUE)
+```
+
+# Chapter 8 - Subgroups
+
+## Subgroups
+
+## Setup
+```{r, eval=FALSE}
+library(UserNetR)
+options(width=50)
+library(statnet)
+```
+
+## First example
+```{r, eval=FALSE}
+data(Moreno)
+gender <- Moreno %v% "gender"
+
+op <- par(mar = rep(0, 4))
+plot(Moreno,vertex.col=2+gender,vertex.cex=1.2)
+par(op)
+```
+
+## More complicated example
+```{r, eval=FALSE}
+data(DHHS)
+agency <- DHHS %v% "agency"
+op <- par(mar = rep(0, 4))
+plot(DHHS,vertex.col=agency+2,vertex.cex=1.4,
+     edge.col="gray60",displaylabels=TRUE)
+par(op)
+```
+
+## Cliques
+```{r, eval=FALSE}
+detach("package:statnet", unload=TRUE)
+library(igraph)
+clqexmp <- graph.formula(A:B:C:D--A:B:C:D,D-E,E-F-G-E)
+plot(clqexmp,vertex.color="SkyBlue2")
+
+clique.number(clqexmp)
+cliques(clqexmp, min=3)
+maximal.cliques(clqexmp,min=3)
+largest.cliques(clqexmp)
+
+```
+
+## Cliques not that common in larger networks
+```{r, eval=FALSE}
+g25 <- erdos.renyi.game(25, 75, type="gnm")
+g50 <- erdos.renyi.game(50, 150, type="gnm")
+g100 <- erdos.renyi.game(100, 300, type="gnm")
+g500 <- erdos.renyi.game(500, 1500, type="gnm")
+nodes <- c(25,50,100,500)
+lrgclq <- c(clique.number(g25),clique.number(g50),
+            clique.number(g100),clique.number(g500))
+numclq <- c(length(cliques(g25,min=3)),
+            length(cliques(g50,min=3)),
+            length(cliques(g100,min=3)),
+            length(cliques(g500,min=3)))
+clqinfo <- data.frame(Nodes=nodes,Largest=lrgclq,
+                      Number=numclq)
+clqinfo
+```
+
+## k-cores
+```{r, eval=FALSE}
+data(DHHS)
+library(intergraph)
+iDHHS <- asIgraph(DHHS)
+graph.density(iDHHS)
+iDHHS <- subgraph.edges(iDHHS,E(iDHHS)[collab > 2])
+graph.density(iDHHS)
+plot(iDHHS)
+coreness <- graph.coreness(iDHHS)
+table(coreness)
+maxCoreness <- max(coreness)
+maxCoreness
+```
+
+## Visualizing cores
+```{r, eval=FALSE}
+Vname <- get.vertex.attribute(iDHHS,name='vertex.names',
+                              index=V(iDHHS))
+V(iDHHS)$name <- Vname
+V(iDHHS)$color <- coreness + 1
+op <- par(mar = rep(0, 4))
+plot(iDHHS,vertex.label.cex=0.8)
+
+par(op)
+colors <- rainbow(maxCoreness)
+op <- par(mar = rep(0, 4))
+plot(iDHHS,vertex.label=coreness,
+     vertex.color=colors[coreness])
+par(op)
+```
+
+## 'Peeling away' cores to reveal central cores
+```{r, eval=FALSE}
+V(iDHHS)$name <- coreness
+V(iDHHS)$color <- colors[coreness]
+iDHHS1_6 <- iDHHS
+iDHHS2_6 <- induced.subgraph(iDHHS,
+                             vids=which(coreness > 1))
+iDHHS3_6 <- induced.subgraph(iDHHS,
+                             vids=which(coreness > 2))
+iDHHS4_6 <- induced.subgraph(iDHHS,
+                             vids=which(coreness > 3))
+iDHHS5_6 <- induced.subgraph(iDHHS,
+                             vids=which(coreness > 4))
+iDHHS6_6 <- induced.subgraph(iDHHS,
+                             vids=which(coreness > 5))
+lay <- layout.fruchterman.reingold(iDHHS)
+op <- par(mfrow=c(3,2),mar = c(3,0,2,0))
+plot(iDHHS1_6,layout=lay,main="All k-cores")
+plot(iDHHS2_6,layout=lay[which(coreness > 1),],
+     main="k-cores 2-6")
+plot(iDHHS3_6,layout=lay[which(coreness > 2),],
+     main="k-cores 3-6")
+plot(iDHHS4_6,layout=lay[which(coreness > 3),],
+     main="k-cores 4-6")
+plot(iDHHS5_6,layout=lay[which(coreness > 4),],
+     main="k-cores 5-6")
+plot(iDHHS6_6,layout=lay[which(coreness > 5),],
+     main="k-cores 6-6")
+par(op)
+```
+
+## Modularity
+```{r, eval=FALSE}
+g1 <- graph.formula(A-B-C-A,D-E-F-D,G-H-I-G,A-D-G-A)
+V(g1)$grp_good <- c(1,1,1,2,2,2,3,3,3)
+V(g1)$grp_bad <- c(1,2,3,2,3,1,3,1,2)
+
+op <- par(mfrow=c(1,2))
+plot(g1,vertex.color=(V(g1)$grp_good),
+     vertex.size=20,
+     main="Good Grouping")
+plot(g1,vertex.color=(V(g1)$grp_bad),
+     vertex.size=20,
+     main="Bad Grouping")
+par(op)
+
+modularity(g1,V(g1)$grp_good)
+modularity(g1,V(g1)$grp_bad)
+```
+
+## Community detection
+```{r, eval=FALSE}
+library(intergraph)
+data(DHHS)
+iDHHS <- asIgraph(DHHS)
+table(V(iDHHS)$agency)
+V(iDHHS)[1:10]$agency
+modularity(iDHHS,(V(iDHHS)$agency+1))
+
+data(Moreno)
+iMoreno <- asIgraph(Moreno)
+table(V(iMoreno)$gender)
+modularity(iMoreno,V(iMoreno)$gender)
+
+data(Facebook)
+levels(factor(V(Facebook)$group))
+grp_num <- as.numeric(factor(V(Facebook)$group))
+modularity(Facebook,grp_num)
+
+```
+
+## Modularity calculation and presentation
+```{r, eval=FALSE}
+cw <- cluster_walktrap(iMoreno)
+membership(cw)
+modularity(cw)
+plot(cw, iMoreno)
+
+cw <- cluster_walktrap(iDHHS)
+modularity(cw)
+membership(cw)
+plot(cw,iDHHS)
+table(V(iDHHS)$agency,membership(cw))
+```
+
+## More detailed example with Bali
+```{r, eval=FALSE}
+data(Bali)
+iBali <- asIgraph(Bali)
+cw <- cluster_walktrap(iBali)
+modularity(cw)
+membership(cw)
+ceb <- cluster_edge_betweenness(iBali)
+modularity(ceb)
+membership(ceb)
+cs <- cluster_spinglass(iBali)
+modularity(cs)
+membership(cs)
+cfg <- cluster_fast_greedy(iBali)
+modularity(cfg)
+membership(cfg)
+clp <- cluster_label_prop(iBali)
+modularity(clp)
+membership(clp)
+cle <- cluster_leading_eigen(iBali)
+modularity(cle)
+membership(cle)
+cl <- cluster_louvain(iBali)
+modularity(cl)
+membership(cl)
+co <- cluster_optimal(iBali)
+modularity(co)
+membership(co)
+
+table(V(iBali)$role,membership(cw))
+compare(as.numeric(factor(V(iBali)$role)),cw,
+        method="adjusted.rand")
+compare(cw,ceb,method="adjusted.rand")
+compare(cw,cs,method="adjusted.rand")
+compare(cw,cfg,method="adjusted.rand")
+
+op <- par(mfrow=c(3,2),mar=c(3,0,2,0))
+plot(ceb, iBali,vertex.label=V(iBali)$role,
+     main="Edge Betweenness")
+plot(cfg, iBali,vertex.label=V(iBali)$role,
+     main="Fastgreedy")
+plot(clp, iBali,vertex.label=V(iBali)$role,
+     main="Label Propagation")
+plot(cle, iBali,vertex.label=V(iBali)$role,
+     main="Leading Eigenvector")
+plot(cs, iBali,vertex.label=V(iBali)$role,
+     main="Spinglass")
+plot(cw, iBali,vertex.label=V(iBali)$role,
+     main="Walktrap")
+par(op)
+```
+
+## Clean up
+```{r, eval=FALSE}
+detach("package:igraph", unload=TRUE)
+```
+
+# Chapter 9 - Affiliation Networks
+
+## Setup
+```{r, eval=FALSE}
+library(UserNetR)
+library(igraph)
+library(xtable)
+options(width=50,show.signif.stars = F)
+```
+
+## Affiliation table setup
+```{r, eval=FALSE}
+C1 <- c(1,1,1,0,0,0)
+C2 <- c(0,1,1,1,0,0)
+C3 <- c(0,0,1,1,1,0)
+C4 <- c(0,0,0,0,1,1)
+aff.df <- data.frame(C1,C2,C3,C4)
+row.names(aff.df) <- c("S1","S2","S3","S4","S5","S6")
+```
+
+## Affiliation table
+```{r, eval=FALSE}
+x.affil1 <- xtable(aff.df,caption="Students grouped by classes.",
+                   label="tbl:affil1")
+digits(x.affil1) <- 0
+print(x.affil1,latex.environments="center",
+      hline.after=c(0,nrow(aff.df)),
+      include.rownames=TRUE,sanitize.colnames.function=function(x) {x})
+```
+
+## igraph incidence
+```{r, eval=FALSE}
+library(igraph)
+bn <- graph.incidence(aff.df)
+```
+
+## Plot setup
+```{r, eval=FALSE}
+plt.x <- c(rep(2,6),rep(4,4))
+plt.y <- c(7:2,6:3)
+lay <- as.matrix(cbind(plt.x,plt.y))
+```
+
+## Affiliation plot example
+```{r, eval=FALSE}
+shapes <- c("circle","square")
+colors <- c("blue","red")
+plot(bn,vertex.color=colors[V(bn)$type+1],
+     vertex.shape=shapes[V(bn)$type+1],
+     vertex.size=10,vertex.label.degree=-pi/2,
+     vertex.label.dist=1.2,vertex.label.cex=0.9,
+     layout=lay)
+```
+
+## Graph incidence
+```{r, eval=FALSE}
+bn <- graph.incidence(aff.df)
+bn
+```
+
+## Bipartite graph
+```{r, eval=FALSE}
+get.incidence(bn)
+V(bn)$type
+V(bn)$name
+```
+
+## Affiliation edgelist
+```{r, eval=FALSE}
+el.df <- data.frame(rbind(c("S1","C1"),
+             c("S2","C1"),
+             c("S2","C2"),
+             c("S3","C1"),
+             c("S3","C2"),
+             c("S3","C3"),
+             c("S4","C2"),
+             c("S4","C3"),
+             c("S5","C3"),
+             c("S5","C4"),
+             c("S6","C4")))
+el.df
+bn2 <- graph.data.frame(el.df,directed=FALSE)
+bn2
+```
+
+## Affiliation edgelist 2
+```{r, eval=FALSE}
+V(bn2)$type <- V(bn2)$name %in% el.df[,1]
+bn2
+graph.density(bn)==graph.density(bn2)
+```
+
+## Simple affiliation plot
+```{r, eval=FALSE}
+shapes <- c("circle","square")
+colors <- c("blue","red")
+plot(bn,vertex.color=colors[V(bn)$type+1],
+     vertex.shape=shapes[V(bn)$type+1],
+     vertex.size=10,vertex.label.degree=-pi/2,
+     vertex.label.dist=1.2,vertex.label.cex=0.9)
+```
+
+## Bipartite projections
+```{r, eval=FALSE}
+bn.pr <- bipartite.projection(bn)
+bn.pr
+```
+
+## Bipartite projections 2
+```{r, eval=FALSE}
+graph.density(bn.pr$proj1)
+bn.student <- bn.pr$proj1
+bn.class <- bn.pr$proj2
+graph.density(bn.student)
+```
+
+## Bipartite projections 3
+```{r, eval=FALSE}
+get.adjacency(bn.student,sparse=FALSE,attr="weight")
+get.adjacency(bn.class,sparse=FALSE,attr="weight")
+```
+
+## One-mode projection plots
+```{r, eval=FALSE}
+shapes <- c("circle","square")
+colors <- c("blue","red")
+op <- par(mfrow=c(1,2))
+plot(bn.student,vertex.color="blue",
+     vertex.shape="circle",main="Students",
+     edge.width=E(bn.student)$weight*2,
+     vertex.size=15,vertex.label.degree=-pi/2,
+     vertex.label.dist=1.2,vertex.label.cex=1)
+plot(bn.class,vertex.color="red",
+     vertex.shape="square",main="Classes",
+     edge.width=E(bn.student)$weight*2,
+     vertex.size=15,vertex.label.degree=-pi/2,
+     vertex.label.dist=1.2,vertex.label.cex=1)
+par(op)
+```
+
+## Hollywood setup
+```{r, eval=FALSE}
+data(hwd)
+h1 <- hwd
+h1
+V(h1)$name[1:10]
+V(h1)$type[1:10]
+V(h1)$IMDBrating[1:10]
+V(h1)$name[155:165]
+```
+
+## Hollywood affiliation setup
+```{r, eval=FALSE}
+V(h1)$shape <- ifelse(V(h1)$type==TRUE,
+                      "square","circle")
+V(h1)$shape[1:10]
+V(h1)$color <- ifelse(V(h1)$type==TRUE,
+                      "red","lightblue")
+```
+
+## Hollywood plot 
+```{r, eval=FALSE}
+h2 <- subgraph.edges(h1, E(h1)[inc(V(h1)[name %in% 
+  c("The Wolf of Wall Street","Gangs of New York","The Departed")])])
+plot(h2,layout=layout_with_kk)
+```
+
+## Graph density
+```{r, eval=FALSE}
+graph.density(h1)
+```
+
+## Hollywood descriptives
+```{r, eval=FALSE}
+table(degree(h1,v=V(h1)[type==FALSE]))
+mean(degree(h1,v=V(h1)[type==FALSE]))
+```
+
+## Hollywood descriptives 2
+```{r, eval=FALSE}
+V(h1)$deg <- degree(h1)
+V(h1)[type==FALSE & deg > 4]$name
+busy_actor <- data.frame(cbind(
+  Actor = V(h1)[type==FALSE & deg > 4]$name,
+  Movies = V(h1)[type==FALSE & deg > 4]$deg
+))
+busy_actor[order(busy_actor$Movies,decreasing=TRUE),]
+```
+
+## Hollywood descriptives 3
+```{r, eval=FALSE}
+for (i in 161:1365) {
+  V(h1)[i]$totrating <- sum(V(h1)[nei(i)]$IMDBrating)    
+   }
+```
+
+## Hollywood descriptives 4
+```{r, eval=FALSE}
+max(V(h1)$totrating,na.rm=TRUE)
+pop_actor <- data.frame(cbind(
+  Actor = V(h1)[type==FALSE & totrating > 40]$name,
+  Popularity = V(h1)[type==FALSE & 
+                       totrating > 40]$totrating))
+pop_actor[order(pop_actor$Popularity,decreasing=TRUE),]
+```
+
+## Hollywood descriptives 5
+```{r, eval=FALSE}
+for (i in 161:1365) {
+  V(h1)[i]$avgrating <- mean(V(h1)[nei(i)]$IMDBrating)    
+   }
+num <- V(h1)[type==FALSE]$deg
+avgpop <- V(h1)[type==FALSE]$avgrating
+summary(lm(avgpop ~ num))
+```
+
+## Hollywood popularity
+```{r, eval=FALSE}
+scatter.smooth(num,avgpop,col="lightblue",
+               ylim=c(2,10),span=.8,
+               xlab="Number of Movies",
+               ylab="Avg. Popularity")
+```
+
+## Hollywood projections
+```{r, eval=FALSE}
+h1.pr <- bipartite.projection(h1)
+h1.act <- h1.pr$proj1
+h1.mov <- h1.pr$proj2
+h1.act
+h1.mov
+```
+
+## Movie affiliation network
+```{r, eval=FALSE}
+op <- par(mar = rep(0, 4))
+plot(h1.mov,vertex.color="red",
+     vertex.shape="circle",
+     vertex.size=(V(h1.mov)$IMDBrating)-3,
+     vertex.label=NA)
+par(op)
+```
+
+## Movie descriptives
+```{r, eval=FALSE}
+graph.density(h1.mov)
+no.clusters(h1.mov)
+clusters(h1.mov)$csize
+table(E(h1.mov)$weight)
+```
+
+## Movie component
+```{r, eval=FALSE}
+h2.mov <- induced.subgraph(h1.mov,
+          vids=clusters(h1.mov)$membership==1)
+```
+
+## Plot movie component
+```{r, eval=FALSE}
+plot(h2.mov,vertex.color="red",
+     edge.width=sqrt(E(h1.mov)$weight),
+     vertex.shape="circle",
+     vertex.size=(V(h2.mov)$IMDBrating)-3,
+     vertex.label=NA)
+```
+
+## Hollyword cores distribution
+```{r, eval=FALSE}
+table(graph.coreness(h2.mov))
+```
+
+## Plot Hollywood cores
+```{r, eval=FALSE}
+h3.mov <- induced.subgraph(h2.mov,
+                  vids=graph.coreness(h2.mov)>4)
+h3.mov
+plot(h3.mov,vertex.color="red",
+     vertex.shape="circle",
+    edge.width=sqrt(E(h1.mov)$weight),
+    vertex.label.cex=0.7,vertex.label.color="darkgreen",
+    vertex.label.dist=0.3,
+     vertex.size=(V(h3.mov)$IMDBrating)-3)
+```
+
+## Cleanup
+```{r, eval=FALSE}
+detach("package:igraph", unload=TRUE)
 ```
 
